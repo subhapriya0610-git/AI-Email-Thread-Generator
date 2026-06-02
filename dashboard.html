@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AI Email Generator{% endblock %}
+
+{% block content %}
+<div class="dashboard-header fade-in">
+    <div class="welcome-section">
+        <h1>Welcome back, <span class="highlight">{{ session.username }}</span>! <i class="fa-solid fa-hand-wave"></i></h1>
+        <p>Manage your generated emails and create new ones.</p>
+    </div>
+    <a href="{{ url_for('generator') }}" class="btn btn-primary glow-effect">
+        <i class="fa-solid fa-plus"></i> New Email
+    </a>
+</div>
+
+<div class="dashboard-tools glassmorphism fade-in delay-1">
+    <form class="search-form" method="GET" action="{{ url_for('dashboard') }}">
+        <div class="search-input-wrapper">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" name="search" placeholder="Search email history by subject or purpose..." value="{{ search_query }}">
+            {% if search_query %}
+            <a href="{{ url_for('dashboard') }}" class="clear-search"><i class="fa-solid fa-times"></i></a>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-secondary">Search</button>
+    </form>
+</div>
+
+<div class="history-section fade-in delay-2">
+    <h3 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Generations</h3>
+    
+    {% if emails %}
+        <div class="email-grid">
+            {% for email in emails %}
+            <div class="email-card glassmorphism">
+                <div class="email-card-header">
+                    <span class="badge type-{{ email.type|replace('_', '-') }}">{{ email.type|replace('_', ' ')|title }}</span>
+                    <span class="date"><i class="fa-regular fa-calendar"></i> {{ email.created_at[:10] }}</span>
+                </div>
+                <h4 class="email-subject">{{ email.subject }}</h4>
+                <p class="email-purpose">{{ email.purpose|truncate(60) }}</p>
+                <div class="email-actions">
+                    <button class="btn btn-sm btn-outline copy-history-btn" data-content="{{ email.content }}">
+                        <i class="fa-regular fa-copy"></i> Copy
+                    </button>
+                    <button class="btn btn-sm btn-outline view-history-btn" data-subject="{{ email.subject }}" data-content="{{ email.content }}">
+                        <i class="fa-regular fa-eye"></i> View
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state glassmorphism">
+            <i class="fa-regular fa-folder-open fa-3x"></i>
+            {% if search_query %}
+            <h3>No emails found</h3>
+            <p>We couldn't find any emails matching "{{ search_query }}".</p>
+            {% else %}
+            <h3>No emails yet</h3>
+            <p>You haven't generated any emails. Head over to the generator to create your first one!</p>
+            <a href="{{ url_for('generator') }}" class="btn btn-primary mt-3">Start Generating</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- View Modal -->
+<div id="viewModal" class="modal">
+    <div class="modal-content glassmorphism">
+        <span class="close-modal">&times;</span>
+        <h3 id="modalSubject">Subject</h3>
+        <div class="modal-body">
+            <pre id="modalContent"></pre>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Generator - AI Email Generator{% endblock %}
+
+{% block content %}
+<div class="generator-container fade-in">
+    <div class="generator-header">
+        <h2><i class="fa-solid fa-robot"></i> AI Email Generator</h2>
+        <p>Craft professional emails in seconds</p>
+    </div>
+
+    <div class="generator-layout">
+        <!-- Input Section -->
+        <div class="generator-input glassmorphism">
+            <h3><i class="fa-solid fa-pen-nib"></i> Email Details</h3>
+            
+            <div class="tabs">
+                <button class="tab-btn active" data-target="new-email">New Email</button>
+                <button class="tab-btn" data-target="thread-email">Thread / Reply</button>
+            </div>
+
+            <form id="generatorForm">
+                <!-- New Email Fields -->
+                <div id="new-email" class="tab-content active">
+                    <div class="form-group">
+                        <label for="emailType">Email Type</label>
+                        <select id="emailType" name="type" class="form-control">
+                            <option value="leave_request">Leave Request</option>
+                            <option value="job_application">Job Application</option>
+                            <option value="meeting_request">Meeting Request</option>
+                            <option value="apology_email">Apology Email</option>
+                            <option value="business_proposal">Business Proposal</option>
+                            <option value="general">General Inquiry</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Thread Fields -->
+                <div id="thread-email" class="tab-content" style="display: none;">
+                    <div class="form-group">
+                        <label for="threadType">Reply Type</label>
+                        <select id="threadType" name="thread_type" class="form-control">
+                            <option value="reply">Follow-up Reply</option>
+                            <option value="response">Response to Query</option>
+                            <option value="complete">Complete Conversation Summary</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Common Fields -->
+                <div class="form-group">
+                    <label for="subject">Subject (Optional)</label>
+                    <input type="text" id="subject" name="subject" class="form-control" placeholder="Leave blank for AI to auto-generate">
+                </div>
+
+                <div class="form-group">
+                    <label for="purpose">Purpose / Key Points *</label>
+                    <textarea id="purpose" name="purpose" class="form-control" rows="4" required placeholder="E.g., Requesting sick leave for 2 days due to flu..."></textarea>
+                </div>
+
+                <button type="submit" id="generateBtn" class="btn btn-primary btn-block glow-effect mt-3">
+                    <span class="btn-text"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Email</span>
+                    <span class="loader" style="display: none;"><i class="fa-solid fa-circle-notch fa-spin"></i> Generating...</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Output Section -->
+        <div class="generator-output glassmorphism">
+            <div class="output-header">
+                <h3><i class="fa-regular fa-file-lines"></i> Result</h3>
+                <button id="copyBtn" class="btn btn-sm btn-outline" disabled>
+                    <i class="fa-regular fa-copy"></i> Copy
+                </button>
+            </div>
+            
+            <div class="result-container">
+                <div id="emptyResult" class="empty-result">
+                    <i class="fa-solid fa-envelope-open-text fa-3x"></i>
+                    <p>Your generated email will appear here.</p>
+                </div>
+                
+                <div id="activeResult" class="active-result" style="display: none;">
+                    <div class="result-subject-group">
+                        <label>Generated Subject:</label>
+                        <div id="resultSubject" class="result-subject"></div>
+                    </div>
+                    
+                    <div class="result-content-group">
+                        <label>Email Body:</label>
+                        <pre id="resultContent" class="result-content"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
