@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Email Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary-color: #3b82f6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background Animation */
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.15), transparent 25%);
+            animation: backgroundPulse 15s ease-in-out infinite alternate;
+        }
+
+        @keyframes backgroundPulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        /* Glassmorphism */
+        .glassmorphism {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 { font-weight: 600; margin-bottom: 0.5rem; }
+        .text-center { text-align: center; }
+        
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+        }
+        .nav-brand { font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+        .nav-links { display: flex; gap: 1.5rem; }
+        .nav-link { color: var(--text-muted); text-decoration: none; cursor: pointer; transition: 0.3s; font-weight: 500;}
+        .nav-link:hover, .nav-link.active { color: var(--primary-color); }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 500; cursor: pointer;
+            transition: all 0.3s ease; border: none; font-size: 1rem; color: white;
+        }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.875rem; }
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+        .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-main); }
+        .btn-outline:hover { background: rgba(255,255,255,0.1); }
+        .btn-block { width: 100%; }
+
+        /* Forms */
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem; }
+        .form-control {
+            width: 100%; padding: 0.75rem 1rem; border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border);
+            color: var(--text-main); font-size: 1rem; transition: 0.3s;
+        }
+        .form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(99,102,241,0.2); }
+        textarea.form-control { resize: vertical; min-height: 100px; }
+
+        /* Layout */
+        .app-section { display: none; animation: fadeIn 0.4s; }
+        .app-section.active { display: block; }
+        
+        .generator-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        @media (max-width: 900px) { .generator-layout { grid-template-columns: 1fr; } }
+        
+        .panel { padding: 2rem; display: flex; flex-direction: column; }
+        
+        .tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem; }
+        .tab-btn { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; padding: 0.5rem 1rem; position: relative; }
+        .tab-btn.active { color: var(--primary-color); font-weight: 600; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: -0.6rem; left: 0; width: 100%; height: 2px; background: var(--primary-color); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Results */
+        .result-container {
+            flex-grow: 1; background: rgba(0,0,0,0.2); border-radius: 8px;
+            border: 1px solid var(--glass-border); padding: 1.5rem; display: flex; flex-direction: column;
+            margin-top: 1rem;
+        }
+        .empty-result { margin: auto; text-align: center; color: var(--text-muted); opacity: 0.5; }
+        .active-result { display: none; flex-direction: column; gap: 1rem; height: 100%; }
+        .result-subject { font-weight: 600; font-size: 1.1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); }
+        .result-content { white-space: pre-wrap; font-family: inherit; line-height: 1.6; overflow-y: auto; flex-grow: 1; }
+
+        /* Dashboard */
+        .email-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+        .email-card { padding: 1.5rem; display: flex; flex-direction: column; transition: 0.3s; }
+        .email-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .email-card-header { display: flex; justify-content: space-between; margin-bottom: 1rem; font-size: 0.8rem; }
+        .badge { padding: 0.2rem 0.5rem; border-radius: 4px; background: rgba(99,102,241,0.2); color: #a5b4fc; font-weight: 600; }
+        .email-purpose { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; flex-grow: 1; }
+        .email-actions { display: flex; gap: 0.5rem; margin-top: auto; }
+
+        /* Auth Styles */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 2.5rem;
+            text-align: center;
+        }
+        .auth-header { margin-bottom: 2rem; }
+        .auth-header i { color: var(--primary-color); margin-bottom: 1rem; font-size: 3rem; }
+        .auth-header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;}
+        .auth-form { text-align: left; }
+        .auth-footer { margin-top: 1.5rem; font-size: 0.9rem; }
+        .auth-footer a { color: var(--primary-color); text-decoration: none; cursor: pointer; }
+        .auth-footer a:hover { text-decoration: underline; }
+        .input-icon { position: relative; }
+        .input-icon i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .input-icon input { padding-left: 2.5rem; }
+
+        .main-app { display: none; }
+        
+        .alert {
+            padding: 1rem; border-radius: 8px; margin-bottom: 1rem;
+            background: rgba(239, 68, 68, 0.1); border-left: 4px solid var(--danger);
+            display: none; animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div class="container">
+        
+        <!-- Authentication Wrapper -->
+        <div id="auth-wrapper" class="auth-container">
+            
+            <!-- Login Section -->
+            <div id="login-section" class="auth-card glassmorphism app-section active">
+                <div class="auth-header">
+                    <i class="fa-solid fa-user-lock"></i>
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to generate professional emails</p>
+                </div>
+                <div id="login-error" class="alert">Invalid username or password!</div>
+                <form id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <div class="input-icon">
+                            <i class="fa-solid fa-user"></i>
+                            <input type="text" id="loginUsername" class="form-control" required placeholder="Enter username">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="input-icon">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="loginPassword" class="form-control" required placeholder="Enter password">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Login <i class="fa-solid fa-arrow-right"></i></button>
+                </form>
+                <div class="auth-footer">
+                    <p>Don't have an account? <a onclick="showAuthSection('register-section')">Register here</a></p>
+                </div>
+            </div>
+
+            <!-- Register Section -->
+            <div id="register-section" class="auth-card glassmorphism app-section">
+                <div class="auth-header">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <h2>Create Account</h2>
+                    <p>Join to start generating AI emails</p>
+                </div>
+                <div id="reg-error" class="alert">Username already exists!</div>
+                <form id="registerForm" class="auth-form">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <div class="input-icon">
+                            <i class="fa-solid fa-user"></i>
+                            <input type="text" id="regUsername" class="form-control" required placeholder="Choose a username">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="input-icon">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="regPassword" class="form-control" required placeholder="Create a strong password">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Register <i class="fa-solid fa-user-check"></i></button>
+                </form>
+                <div class="auth-footer">
+                    <p>Already have an account? <a onclick="showAuthSection('login-section')">Login here</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Application Wrapper -->
+        <div id="main-app" class="main-app">
+            <nav class="navbar glassmorphism">
+                <div class="nav-brand">
+                    <i class="fa-solid fa-envelope-open-text"></i> AI Email Gen
+                </div>
+                <div class="nav-links">
+                    <a class="nav-link active" onclick="showAppSection('generator-section', this)"><i class="fa-solid fa-wand-magic-sparkles"></i> Generator</a>
+                    <a class="nav-link" onclick="showAppSection('dashboard-section', this)"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+                    <a class="nav-link" onclick="logout()" style="color: var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                </div>
+            </nav>
+
+            <!-- Generator Section -->
+            <div id="generator-section" class="app-section active">
+                <div class="text-center" style="margin-bottom: 2rem;">
+                    <h2>Welcome, <span id="welcomeName" style="color: var(--primary-color);"></span>!</h2>
+                    <p style="color: var(--text-muted);">Generate smart, professional emails instantly in your browser.</p>
+                </div>
+
+                <div class="generator-layout">
+                    <div class="panel glassmorphism">
+                        <h3><i class="fa-solid fa-pen-nib"></i> Email Details</h3>
+                        <div class="tabs">
+                            <button class="tab-btn active" onclick="switchTab('new-email', this)">New Email</button>
+                            <button class="tab-btn" onclick="switchTab('thread-email', this)">Thread / Reply</button>
+                        </div>
+
+                        <form id="generatorForm">
+                            <div id="new-email" class="tab-content active">
+                                <div class="form-group">
+                                    <label>Email Type</label>
+                                    <select id="emailType" class="form-control">
+                                        <option value="leave_request">Leave Request</option>
+                                        <option value="job_application">Job Application</option>
+                                        <option value="meeting_request">Meeting Request</option>
+                                        <option value="business_proposal">Business Proposal</option>
+                                        <option value="apology">Apology Email</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="thread-email" class="tab-content">
+                                <div class="form-group">
+                                    <label>Reply Type</label>
+                                    <select id="threadType" class="form-control">
+                                        <option value="reply">Follow-up Reply</option>
+                                        <option value="response">Response to Query</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Subject (Optional)</label>
+                                <input type="text" id="subject" class="form-control" placeholder="Leave blank for auto-generate">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Purpose / Key Points *</label>
+                                <textarea id="purpose" class="form-control" required placeholder="E.g., Requesting sick leave for 2 days..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block">Generate Email</button>
+                        </form>
+                    </div>
+
+                    <div class="panel glassmorphism">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3><i class="fa-regular fa-file-lines"></i> Result</h3>
+                            <button id="copyBtn" class="btn btn-sm btn-outline" disabled onclick="copyResult()">
+                                <i class="fa-regular fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        
+                        <div class="result-container">
+                            <div id="emptyResult" class="empty-result">
+                                <i class="fa-solid fa-envelope-open-text fa-3x"></i>
+                                <p>Your generated email will appear here.</p>
+                            </div>
+                            <div id="activeResult" class="active-result">
+                                <div>
+                                    <label style="font-size: 0.85rem; color: var(--text-muted);">SUBJECT:</label>
+                                    <div id="resultSubject" class="result-subject"></div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; flex-grow: 1;">
+                                    <label style="font-size: 0.85rem; color: var(--text-muted);">BODY:</label>
+                                    <pre id="resultContent" class="result-content"></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="app-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2><i class="fa-solid fa-clock-rotate-left"></i> Your History</h2>
+                    <button class="btn btn-outline btn-sm" onclick="clearHistory()"><i class="fa-solid fa-trash"></i> Clear History</button>
+                </div>
+                
+                <div id="historyGrid" class="email-grid">
+                    <!-- History items injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === Authentication Logic ===
+        
+        // Initialize local storage databases
+        if (!localStorage.getItem('usersDB')) localStorage.setItem('usersDB', JSON.stringify({}));
+        
+        // Check Auth Status on Load
+        checkAuthStatus();
+
+        function checkAuthStatus() {
+            const currentUser = localStorage.getItem('currentUser');
+            if (currentUser) {
+                document.getElementById('auth-wrapper').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                document.getElementById('welcomeName').textContent = currentUser;
+            } else {
+                document.getElementById('main-app').style.display = 'none';
+                document.getElementById('auth-wrapper').style.display = 'flex';
+                showAuthSection('login-section');
+            }
+        }
+
+        function showAuthSection(id) {
+            document.getElementById('login-section').classList.remove('active');
+            document.getElementById('register-section').classList.remove('active');
+            document.getElementById(id).classList.add('active');
+            
+            // Clear errors
+            document.getElementById('login-error').style.display = 'none';
+            document.getElementById('reg-error').style.display = 'none';
+        }
+
+        // Handle Register
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            
+            let users = JSON.parse(localStorage.getItem('usersDB'));
+            
+            if (users[username]) {
+                document.getElementById('reg-error').style.display = 'block';
+                return;
+            }
+            
+            users[username] = { password: password, history: [] };
+            localStorage.setItem('usersDB', JSON.stringify(users));
+            
+            alert('Registration Successful! Please login.');
+            showAuthSection('login-section');
+            document.getElementById('registerForm').reset();
+        });
+
+        // Handle Login
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            let users = JSON.parse(localStorage.getItem('usersDB'));
+            
+            if (users[username] && users[username].password === password) {
+                localStorage.setItem('currentUser', username);
+                document.getElementById('loginForm').reset();
+                checkAuthStatus();
+                showAppSection('generator-section', document.querySelector('.nav-link'));
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+            }
+        });
+
+        // Handle Logout
+        function logout() {
+            localStorage.removeItem('currentUser');
+            checkAuthStatus();
+        }
+
+        // === Main App Logic ===
+
+        function showAppSection(id, element) {
+            document.querySelectorAll('#main-app .app-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            if(element) element.classList.add('active');
+            
+            if (id === 'dashboard-section') loadHistory();
+        }
+
+        function switchTab(id, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        // Generate Logic
+        document.getElementById('generatorForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const isThread = document.getElementById('thread-email').classList.contains('active');
+            let type = isThread ? document.getElementById('threadType').value : document.getElementById('emailType').value;
+            let subject = document.getElementById('subject').value;
+            const purpose = document.getElementById('purpose').value;
+            
+            // Generate content
+            let content = "";
+            
+            if (!isThread) {
+                if (!subject) subject = `${type.replace('_', ' ').toUpperCase()}: ${purpose.substring(0, 20)}...`;
+                content = `Dear [Name],\n\nI am writing to you regarding ${purpose}.\n\n`;
+                if (type === 'leave_request') content += "I would like to request leave for this purpose. I have ensured all my pending tasks are updated and handed over to the team.\n\nThank you for understanding.";
+                else if (type === 'job_application') content += "I believe my skills and experience make me a strong candidate for this role. I have attached my resume for your review and look forward to discussing this opportunity.\n\nThank you for your time.";
+                else content += "I hope we can discuss this further at your earliest convenience. Please let me know if you need any additional information.\n\nThank you.";
+            } else {
+                if (!subject) subject = `Re: ${purpose.substring(0, 20)}...`;
+                if (type === 'reply') content = `Dear [Name],\n\nThank you for your previous email. Following up on ${purpose}, I would like to add that we should proceed as discussed.\n\nLet me know your thoughts.`;
+                else content = `Dear [Name],\n\nI have received your email regarding ${purpose}. I have reviewed the details and agree with the proposed steps.\n\nPlease proceed accordingly.`;
+            }
+            
+            content += "\n\nBest regards,\n[Your Name]";
+            
+            // Show result
+            document.getElementById('emptyResult').style.display = 'none';
+            document.getElementById('activeResult').style.display = 'flex';
+            document.getElementById('resultSubject').textContent = subject;
+            document.getElementById('resultContent').textContent = content;
+            document.getElementById('copyBtn').disabled = false;
+            
+            // Save to localStorage for this specific user
+            saveToHistory({
+                type: isThread ? 'Thread' : type.replace('_', ' '),
+                subject: subject,
+                purpose: purpose,
+                content: content,
+                date: new Date().toLocaleDateString()
+            });
+        });
+
+        function copyResult() {
+            const subject = document.getElementById('resultSubject').textContent;
+            const content = document.getElementById('resultContent').textContent;
+            const textToCopy = `Subject: ${subject}\n\n${content}`;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                setTimeout(() => btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy', 2000);
+            });
+        }
+
+        // Local Storage History per user
+        function saveToHistory(emailData) {
+            const currentUser = localStorage.getItem('currentUser');
+            let users = JSON.parse(localStorage.getItem('usersDB'));
+            
+            if(users[currentUser]) {
+                users[currentUser].history.unshift(emailData);
+                localStorage.setItem('usersDB', JSON.stringify(users));
+            }
+        }
+
+        function loadHistory() {
+            const currentUser = localStorage.getItem('currentUser');
+            let users = JSON.parse(localStorage.getItem('usersDB'));
+            let history = users[currentUser]?.history || [];
+            
+            const historyGrid = document.getElementById('historyGrid');
+            
+            if (history.length === 0) {
+                historyGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem;">No history found. Generate some emails first!</div>';
+                return;
+            }
+            
+            historyGrid.innerHTML = history.map((item, index) => `
+                <div class="email-card glassmorphism">
+                    <div class="email-card-header">
+                        <span class="badge">${item.type.toUpperCase()}</span>
+                        <span style="color: var(--text-muted);"><i class="fa-regular fa-calendar"></i> ${item.date}</span>
+                    </div>
+                    <h4 style="margin-bottom: 0.5rem; color: var(--text-main);">${item.subject}</h4>
+                    <p class="email-purpose">${item.purpose.substring(0, 60)}...</p>
+                    <div class="email-actions">
+                        <button class="btn btn-sm btn-outline" onclick="copyFromHistory(${index})"><i class="fa-regular fa-copy"></i> Copy</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function copyFromHistory(index) {
+            const currentUser = localStorage.getItem('currentUser');
+            let users = JSON.parse(localStorage.getItem('usersDB'));
+            let history = users[currentUser]?.history || [];
+            
+            const item = history[index];
+            if (item) {
+                navigator.clipboard.writeText(`Subject: ${item.subject}\n\n${item.content}`);
+                alert('Copied to clipboard!');
+            }
+        }
+
+        function clearHistory() {
+            if(confirm('Are you sure you want to clear your email history?')) {
+                const currentUser = localStorage.getItem('currentUser');
+                let users = JSON.parse(localStorage.getItem('usersDB'));
+                
+                if(users[currentUser]) {
+                    users[currentUser].history = [];
+                    localStorage.setItem('usersDB', JSON.stringify(users));
+                    loadHistory();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
