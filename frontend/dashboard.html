@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AI Email Generator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar will be dynamically injected here by main.js -->
+
+    <main class="container">
+        <!-- Flash messages will be dynamically injected here by main.js if needed -->
+        
+        <div class="dashboard-header fade-in">
+            <div class="welcome-section">
+                <h1>Welcome back, <span class="highlight">User</span>! <i class="fa-solid fa-hand-wave"></i></h1>
+                <p>Manage your generated emails and create new ones.</p>
+            </div>
+            <a href="generator.html" class="btn btn-primary glow-effect">
+                <i class="fa-solid fa-plus"></i> New Email
+            </a>
+        </div>
+        
+        <div class="dashboard-tools glassmorphism fade-in delay-1">
+            <form class="search-form">
+                <div class="search-input-wrapper">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" name="search" placeholder="Search email history by subject or purpose...">
+                </div>
+                <button type="submit" class="btn btn-secondary">Search</button>
+            </form>
+        </div>
+        
+        <div class="history-section fade-in delay-2">
+            <h3 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Generations</h3>
+            
+            <div class="email-grid" style="display: none;">
+                <!-- Emails dynamically populated by main.js -->
+            </div>
+            
+            <div class="empty-state glassmorphism" style="display: none;">
+                <!-- Empty state markup dynamically populated by main.js -->
+            </div>
+        </div>
+        
+        <!-- View Modal -->
+        <div id="viewModal" class="modal">
+            <div class="modal-content glassmorphism">
+                <span class="close-modal">&times;</span>
+                <h3 id="modalSubject">Subject</h3>
+                <div class="modal-body">
+                    <pre id="modalContent"></pre>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
