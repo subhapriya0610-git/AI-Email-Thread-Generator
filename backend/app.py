@@ -28,7 +28,7 @@ db = client[MONGO_DB_NAME]
 users_collection = db["users"]
 emails_collection = db["emails"]
 
-users_collection.create_index("email", unique=True)
+users_collection.create_index("username", unique=True)
 emails_collection.create_index([("user_id", 1), ("created_at", -1)])
 
 
@@ -128,24 +128,22 @@ def create_app() -> Flask:
         except Exception as error:
             return http_error(f"Database connection failed: {error}", 503)
 
-    @app.route("/api/auth/register", methods=["POST"])
+    @app.route("/api/register", methods=["POST"])
     def register() -> tuple[dict[str, Any], int]:
         payload = require_json()
         if isinstance(payload, tuple):
             return payload
 
-        email = (payload.get("email") or "").strip().lower()
+        username = (payload.get("username") or "").strip()
         password = payload.get("password")
-        name = (payload.get("name") or "").strip()
 
-        if not email or not password:
-            return http_error("Email and password are required.", 400)
+        if not username or not password:
+            return http_error("Username and password are required.", 400)
 
         hashed_password = generate_password_hash(password)
         user_document = {
-            "email": email,
+            "username": username,
             "password": hashed_password,
-            "name": name,
             "created_at": datetime.datetime.utcnow(),
         }
 
@@ -153,54 +151,46 @@ def create_app() -> Flask:
             result = users_collection.insert_one(user_document)
             user_id = result.inserted_id
         except DuplicateKeyError:
-            return http_error("A user with this email already exists.", 409)
+            return http_error("A user with this username already exists.", 409)
         except Exception as error:
             return http_error(f"Unable to create user: {error}", 500)
 
         return {
-            "success": True,
-            "data": {
-                "id": str(user_id),
-                "email": email,
-                "name": name,
-            },
+            "id": str(user_id),
+            "username": username,
         }, 201
 
-    @app.route("/api/auth/login", methods=["POST"])
+    @app.route("/api/login", methods=["POST"])
     def login() -> tuple[dict[str, Any], int]:
         payload = require_json()
         if isinstance(payload, tuple):
             return payload
 
-        email = (payload.get("email") or "").strip().lower()
+        username = (payload.get("username") or "").strip()
         password = payload.get("password")
 
-        if not email or not password:
-            return http_error("Email and password are required.", 400)
+        if not username or not password:
+            return http_error("Username and password are required.", 400)
 
-        user = users_collection.find_one({"email": email})
+        user = users_collection.find_one({"username": username})
         if user is None or not check_password_hash(user["password"], password):
-            return http_error("Invalid email or password.", 401)
+            return http_error("Invalid username or password.", 401)
 
         now = datetime.datetime.utcnow()
         token_payload = {
             "sub": str(user["_id"]),
-            "email": user["email"],
+            "username": user["username"],
             "iat": int(now.timestamp()),
             "exp": int((now + datetime.timedelta(seconds=JWT_EXPIRATION_SECONDS)).timestamp()),
         }
         access_token = encode_jwt(token_payload)
 
         return {
-            "success": True,
-            "data": {
-                "access_token": access_token,
-                "expires_in": JWT_EXPIRATION_SECONDS,
-                "user": {
-                    "id": str(user["_id"]),
-                    "email": user["email"],
-                    "name": user.get("name", ""),
-                },
+            "access_token": access_token,
+            "expires_in": JWT_EXPIRATION_SECONDS,
+            "user": {
+                "id": str(user["_id"]),
+                "username": user["username"],
             },
         }, 200
 
@@ -229,7 +219,7 @@ def create_app() -> Flask:
 
         return core_subject, body
 
-    @app.route("/api/emails/generate", methods=["POST"])
+    @app.route("/api/generate", methods=["POST"])
     @token_required
     def generate_email(current_user: dict[str, Any]) -> tuple[dict[str, Any], int]:
         payload = require_json()
@@ -268,7 +258,7 @@ def create_app() -> Flask:
             },
         }, 201
 
-    @app.route("/api/emails/history", methods=["GET"])
+    @app.route("/api/history", methods=["GET"])
     @token_required
     def email_history(current_user: dict[str, Any]) -> tuple[dict[str, Any], int]:
         limit = min(int(request.args.get("limit", "25")), 100)
