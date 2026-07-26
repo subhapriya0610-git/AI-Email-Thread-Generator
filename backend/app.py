@@ -156,6 +156,7 @@ def create_app() -> Flask:
             return http_error(f"Unable to create user: {error}", 500)
 
         return {
+            "success": True,
             "id": str(user_id),
             "username": username,
         }, 201
@@ -186,7 +187,9 @@ def create_app() -> Flask:
         access_token = encode_jwt(token_payload)
 
         return {
-            "access_token": access_token,
+            "success": True,
+            "token": access_token,
+            "username": user["username"],
             "expires_in": JWT_EXPIRATION_SECONDS,
             "user": {
                 "id": str(user["_id"]),
